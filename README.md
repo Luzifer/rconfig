@@ -14,6 +14,12 @@ Install by running:
 go get -u github.com/Luzifer/rconfig
 ```
 
+OR fetch a specific version:
+
+```
+go get -u gopkg.in/luzifer/rconfig.v1
+```
+
 Run tests by running:
 
 ```
