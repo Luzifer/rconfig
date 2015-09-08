@@ -1,4 +1,4 @@
-[![Circle CI](https://circleci.com/gh/Luzifer/rconfig.svg?style=svg)](https://circleci.com/gh/Luzifer/rconfig)
+[![Build Status](https://travis-ci.org/Luzifer/rconfig.svg?branch=master)](https://travis-ci.org/Luzifer/rconfig)
 [![License: Apache v2.0](https://badge.luzifer.io/v1/badge?color=5d79b5&title=license&text=Apache+v2.0)](http://www.apache.org/licenses/LICENSE-2.0)
 [![Documentation](https://badge.luzifer.io/v1/badge?title=godoc&text=reference)](https://godoc.org/github.com/Luzifer/rconfig)
 
