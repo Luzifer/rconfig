@@ -53,6 +53,35 @@ func main() {
 }
 ```
 
+### Provide variable defaults by using a file
+
+Given you have a file `~/.myapp.yml` containing some secrets or usernames (for the example below username is assumed to be "luzifer") as a default configuration for your application you can use this source code to load the defaults from that file using the `vardefault` tag in your configuration struct.
+
+The order of the directives (lower number = higher precedence):
+
+1. Flags provided in command line
+1. Environment variables
+1. Variable defaults (`vardefault` tag in the struct)
+1. `default` tag in the struct
+
+```go
+type config struct {
+  Username string `vardefault:"username" flag:"username" description:"Your username"`
+}
+
+var cfg = config{}
+
+func init() {
+  rconfig.SetVariableDefaults(VarDefaultsFromYAMLFile("~/.myapp.yml"))
+  rconfig.Parse(&cfg)
+}
+
+func main() {
+  fmt.Printf("Username = %s", cfg.Username)
+  // Output: Username = luzifer
+}
+```
+
 ## More info
 
 You can see the full reference documentation of the rconfig package [at godoc.org](https://godoc.org/github.com/Luzifer/rconfig), or through go's standard documentation system by running `godoc -http=:6060` and browsing to [http://localhost:6060/pkg/github.com/Luzifer/rconfig](http://localhost:6060/pkg/github.com/Luzifer/rconfig) after installation.

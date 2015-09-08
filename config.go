@@ -91,8 +91,8 @@ func execTags(in interface{}, fs *pflag.FlagSet) error {
 			continue
 		}
 
-		value := envDefault(typeField.Tag.Get("env"), typeField.Tag.Get("default"))
-		value = varDefault(typeField.Tag.Get("vardefault"), value)
+		value := varDefault(typeField.Tag.Get("vardefault"), typeField.Tag.Get("default"))
+		value = envDefault(typeField.Tag.Get("env"), value)
 		parts := strings.Split(typeField.Tag.Get("flag"), ",")
 
 		switch typeField.Type.Kind() {
