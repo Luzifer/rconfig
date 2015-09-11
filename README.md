@@ -78,7 +78,7 @@ type config struct {
 var cfg = config{}
 
 func init() {
-  rconfig.SetVariableDefaults(VarDefaultsFromYAMLFile("~/.myapp.yml"))
+  rconfig.SetVariableDefaults(rconfig.VarDefaultsFromYAMLFile("~/.myapp.yml"))
   rconfig.Parse(&cfg)
 }
 
