@@ -1,7 +1,7 @@
 // Package rconfig implements a CLI configuration reader with struct-embedded
 // defaults, environment variables and posix compatible flag parsing using
 // the pflag library.
-package rconfig //import "github.com/Luzifer/rconfig"
+package rconfig
 
 import (
 	"errors"
