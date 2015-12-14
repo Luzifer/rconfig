@@ -44,6 +44,11 @@ func Parse(config interface{}) error {
 	return parse(config, nil)
 }
 
+// Args returns the non-flag command-line arguments.
+func Args() []string {
+	return fs.Args()
+}
+
 // Usage prints a basic usage with the corresponding defaults for the flags to
 // os.Stdout. The defaults are derived from the `default` struct-tag and the ENV.
 func Usage() {

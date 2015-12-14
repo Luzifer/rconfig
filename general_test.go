@@ -80,4 +80,30 @@ var _ = Describe("Testing general parsing", func() {
 		})
 	})
 
+	Context("with additional arguments", func() {
+		BeforeEach(func() {
+			cfg = t{}
+			args = []string{
+				"--shell=test23",
+				"-t", "bla",
+				"positional1", "positional2",
+			}
+		})
+
+		JustBeforeEach(func() {
+			err = parse(&cfg, args)
+		})
+
+		It("should not have errored", func() { Expect(err).NotTo(HaveOccurred()) })
+		It("should have parsed the expected values", func() {
+			Expect(cfg.Test).To(Equal("test23"))
+			Expect(cfg.Test2).To(Equal("bla"))
+			Expect(cfg.SadFlag).To(Equal(""))
+			Expect(cfg.DefaultFlag).To(Equal("goo"))
+		})
+		It("should have detected the positional arguments", func() {
+			Expect(Args()).To(Equal([]string{"positional1", "positional2"}))
+		})
+	})
+
 })
