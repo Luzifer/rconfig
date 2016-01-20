@@ -1,6 +1,8 @@
 package rconfig
 
 import (
+	"os"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
@@ -37,5 +39,32 @@ var _ = Describe("Testing bool parsing", func() {
 		Expect(cfg.Test2).To(Equal(true))
 		Expect(cfg.Test3).To(Equal(true))
 		Expect(cfg.Test4).To(Equal(false))
+	})
+})
+
+var _ = Describe("Testing to set bool from ENV with default", func() {
+	type t struct {
+		Test1 bool `default:"true" env:"TEST1"`
+	}
+
+	var (
+		err  error
+		args []string
+		cfg  t
+	)
+
+	BeforeEach(func() {
+		cfg = t{}
+		args = []string{}
+	})
+
+	JustBeforeEach(func() {
+		os.Unsetenv("TEST1")
+		err = parse(&cfg, args)
+	})
+
+	It("should not have errored", func() { Expect(err).NotTo(HaveOccurred()) })
+	It("should have the expected values", func() {
+		Expect(cfg.Test1).To(Equal(true))
 	})
 })
