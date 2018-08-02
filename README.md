@@ -2,7 +2,7 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/Luzifer/rconfig)](https://goreportcard.com/report/github.com/Luzifer/rconfig)
 [![Documentation](https://badges.fyi/static/godoc/reference/5272B4)](https://godoc.org/github.com/Luzifer/rconfig)
 ![](https://badges.fyi/github/license/Luzifer/rconfig)
-[![](https://badges.fyi/github/latest-release/Luzifer/rconfig)](https://gopkg.in/Luzifer/rconfig.v2)
+[![](https://badges.fyi/github/latest-tag/Luzifer/rconfig)](https://gopkg.in/Luzifer/rconfig.v2)
 
 ## Description
 
