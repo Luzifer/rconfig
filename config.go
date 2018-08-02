@@ -17,6 +17,7 @@ import (
 )
 
 var (
+	autoEnv          bool
 	fs               *pflag.FlagSet
 	variableDefaults map[string]string
 )
@@ -58,6 +59,13 @@ func ParseAndValidate(config interface{}) error {
 // Args returns the non-flag command-line arguments.
 func Args() []string {
 	return fs.Args()
+}
+
+// AutoEnv enables or disables automated env variable guessing. If no `env` struct
+// tag was set and AutoEnv is enabled the env variable name is derived from the
+// name of the field: `MyFieldName` will get `MY_FIELD_NAME`
+func AutoEnv(enable bool) {
+	autoEnv = enable
 }
 
 // Usage prints a basic usage with the corresponding defaults for the flags to
@@ -116,7 +124,7 @@ func execTags(in interface{}, fs *pflag.FlagSet) error {
 		}
 
 		value := varDefault(typeField.Tag.Get("vardefault"), typeField.Tag.Get("default"))
-		value = envDefault(typeField.Tag.Get("env"), value)
+		value = envDefault(typeField, value)
 		parts := strings.Split(typeField.Tag.Get("flag"), ",")
 
 		switch typeField.Type {
@@ -334,8 +342,13 @@ func registerFlagUint(t reflect.Kind, fs *pflag.FlagSet, field interface{}, part
 	}
 }
 
-func envDefault(env, def string) string {
+func envDefault(field reflect.StructField, def string) string {
 	value := def
+
+	env := field.Tag.Get("env")
+	if env == "" && autoEnv {
+		env = deriveEnvVarName(field.Name)
+	}
 
 	if env != "" {
 		if e := os.Getenv(env); e != "" {
