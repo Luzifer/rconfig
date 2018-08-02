@@ -1,3 +1,7 @@
+# 2.1.0 / 2018-08-02
+
+  * Add AutoEnv feature
+
 # 2.0.0 / 2018-08-02
 
   * Breaking: Ensure an empty default string does not yield a slice with 1 element  
