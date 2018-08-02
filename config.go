@@ -237,7 +237,10 @@ func execTags(in interface{}, fs *pflag.FlagSet) error {
 				if len(del) == 0 {
 					del = ","
 				}
-				def := strings.Split(value, del)
+				var def = []string{}
+				if value != "" {
+					def = strings.Split(value, del)
+				}
 				if len(parts) == 1 {
 					fs.StringSliceVar(valField.Addr().Interface().(*[]string), parts[0], def, typeField.Tag.Get("description"))
 				} else {
