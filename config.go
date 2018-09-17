@@ -16,10 +16,25 @@ import (
 	validator "gopkg.in/validator.v2"
 )
 
+type afterFunc func() error
+
 var (
 	autoEnv          bool
 	fs               *pflag.FlagSet
 	variableDefaults map[string]string
+
+	timeParserFormats = []string{
+		// Default constants
+		time.RFC3339Nano, time.RFC3339,
+		time.RFC1123Z, time.RFC1123,
+		time.RFC822Z, time.RFC822,
+		time.RFC850, time.RubyDate, time.UnixDate, time.ANSIC,
+		"2006-01-02 15:04:05.999999999 -0700 MST",
+		// More uncommon time formats
+		"2006-01-02 15:04:05", "2006-01-02 15:04:05Z07:00", // Simplified ISO time format
+		"01/02/2006 15:04:05", "01/02/2006 15:04:05Z07:00", // US time format
+		"02.01.2006 15:04:05", "02.01.2006 15:04:05Z07:00", // DE time format
+	}
 )
 
 func init() {
@@ -61,6 +76,11 @@ func Args() []string {
 	return fs.Args()
 }
 
+// AddTimeParserFormats adds custom formats to parse time.Time fields
+func AddTimeParserFormats(f ...string) {
+	timeParserFormats = append(timeParserFormats, f...)
+}
+
 // AutoEnv enables or disables automated env variable guessing. If no `env` struct
 // tag was set and AutoEnv is enabled the env variable name is derived from the
 // name of the field: `MyFieldName` will get `MY_FIELD_NAME`
@@ -97,21 +117,36 @@ func parse(in interface{}, args []string) error {
 	}
 
 	fs = pflag.NewFlagSet(os.Args[0], pflag.ExitOnError)
-	if err := execTags(in, fs); err != nil {
+	afterFuncs, err := execTags(in, fs)
+	if err != nil {
 		return err
 	}
 
-	return fs.Parse(args)
+	if err := fs.Parse(args); err != nil {
+		return err
+	}
+
+	if afterFuncs != nil {
+		for _, f := range afterFuncs {
+			if err := f(); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
 }
 
-func execTags(in interface{}, fs *pflag.FlagSet) error {
+func execTags(in interface{}, fs *pflag.FlagSet) ([]afterFunc, error) {
 	if reflect.TypeOf(in).Kind() != reflect.Ptr {
-		return errors.New("Calling parser with non-pointer")
+		return nil, errors.New("Calling parser with non-pointer")
 	}
 
 	if reflect.ValueOf(in).Elem().Kind() != reflect.Struct {
-		return errors.New("Calling parser with pointer to non-struct")
+		return nil, errors.New("Calling parser with pointer to non-struct")
 	}
+
+	afterFuncs := []afterFunc{}
 
 	st := reflect.ValueOf(in).Elem()
 	for i := 0; i < st.NumField(); i++ {
@@ -134,7 +169,7 @@ func execTags(in interface{}, fs *pflag.FlagSet) error {
 				if value == "" {
 					v = time.Duration(0)
 				} else {
-					return err
+					return nil, err
 				}
 			}
 
@@ -147,6 +182,53 @@ func execTags(in interface{}, fs *pflag.FlagSet) error {
 			} else {
 				valField.Set(reflect.ValueOf(v))
 			}
+			continue
+
+		case reflect.TypeOf(time.Time{}):
+			var sVar string
+
+			if typeField.Tag.Get("flag") != "" {
+				if len(parts) == 1 {
+					fs.StringVar(&sVar, parts[0], value, typeField.Tag.Get("description"))
+				} else {
+					fs.StringVarP(&sVar, parts[0], parts[1], value, typeField.Tag.Get("description"))
+				}
+			} else {
+				sVar = value
+			}
+
+			afterFuncs = append(afterFuncs, func(valField reflect.Value, sVar *string) func() error {
+				return func() error {
+					if *sVar == "" {
+						// No time, no problem
+						return nil
+					}
+
+					// Check whether we could have a timestamp
+					if ts, err := strconv.ParseInt(*sVar, 10, 64); err == nil {
+						t := time.Unix(ts, 0)
+						valField.Set(reflect.ValueOf(t))
+						return nil
+					}
+
+					// We haven't so lets walk through possible time formats
+					matched := false
+					for _, tf := range timeParserFormats {
+						if t, err := time.Parse(tf, *sVar); err == nil {
+							matched = true
+							valField.Set(reflect.ValueOf(t))
+							return nil
+						}
+					}
+
+					if !matched {
+						return fmt.Errorf("Value %q did not match expected time formats", *sVar)
+					}
+
+					return nil
+				}
+			}(valField, &sVar))
+
 			continue
 		}
 
@@ -180,7 +262,7 @@ func execTags(in interface{}, fs *pflag.FlagSet) error {
 				if value == "" {
 					vt = 0
 				} else {
-					return err
+					return nil, err
 				}
 			}
 			if typeField.Tag.Get("flag") != "" {
@@ -195,7 +277,7 @@ func execTags(in interface{}, fs *pflag.FlagSet) error {
 				if value == "" {
 					vt = 0
 				} else {
-					return err
+					return nil, err
 				}
 			}
 			if typeField.Tag.Get("flag") != "" {
@@ -210,7 +292,7 @@ func execTags(in interface{}, fs *pflag.FlagSet) error {
 				if value == "" {
 					vt = 0.0
 				} else {
-					return err
+					return nil, err
 				}
 			}
 			if typeField.Tag.Get("flag") != "" {
@@ -220,9 +302,11 @@ func execTags(in interface{}, fs *pflag.FlagSet) error {
 			}
 
 		case reflect.Struct:
-			if err := execTags(valField.Addr().Interface(), fs); err != nil {
-				return err
+			afs, err := execTags(valField.Addr().Interface(), fs)
+			if err != nil {
+				return nil, err
 			}
+			afterFuncs = append(afterFuncs, afs...)
 
 		case reflect.Slice:
 			switch typeField.Type.Elem().Kind() {
@@ -231,7 +315,7 @@ func execTags(in interface{}, fs *pflag.FlagSet) error {
 				for _, v := range strings.Split(value, ",") {
 					it, err := strconv.ParseInt(strings.TrimSpace(v), 10, 64)
 					if err != nil {
-						return err
+						return nil, err
 					}
 					def = append(def, int(it))
 				}
@@ -258,7 +342,7 @@ func execTags(in interface{}, fs *pflag.FlagSet) error {
 		}
 	}
 
-	return nil
+	return afterFuncs, nil
 }
 
 func registerFlagFloat(t reflect.Kind, fs *pflag.FlagSet, field interface{}, parts []string, vt float64, desc string) {
