@@ -1,3 +1,7 @@
+# 2.2.0 / 2018-09-18
+
+  * Add support for time.Time flags
+
 # 2.1.0 / 2018-08-02
 
   * Add AutoEnv feature
