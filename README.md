@@ -58,6 +58,12 @@ func main() {
 }
 ```
 
+In Go 1.11 support for Go modules was added. To import the current version using Go modules use this import:
+
+```go
+import rconfig "github.com/Luzifer/rconfig/v2"
+```
+
 ### Provide variable defaults by using a file
 
 Given you have a file `~/.myapp.yml` containing some secrets or usernames (for the example below username is assumed to be "luzifer") as a default configuration for your application you can use this source code to load the defaults from that file using the `vardefault` tag in your configuration struct.
