@@ -1,3 +1,7 @@
+# 2.2.1 / 2019-02-04
+
+  * Add go module information
+
 # 2.2.0 / 2018-09-18
 
   * Add support for time.Time flags
