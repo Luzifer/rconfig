@@ -1,3 +1,8 @@
+# 2.3.0 / 2021-08-06
+
+  * Drop pre-1.15 support, update dependencies
+  * Add hint for go modules to v2
+
 # 2.2.1 / 2019-02-04
 
   * Add go module information
