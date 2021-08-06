@@ -1,7 +1,9 @@
 module github.com/Luzifer/rconfig/v2
 
+go 1.16
+
 require (
-	github.com/spf13/pflag v1.0.3
-	gopkg.in/validator.v2 v2.0.0-20180514200540-135c24b11c19
-	gopkg.in/yaml.v2 v2.2.2
+	github.com/spf13/pflag v1.0.5
+	gopkg.in/validator.v2 v2.0.0-20210331031555-b37d688a7fb0
+	gopkg.in/yaml.v2 v2.4.0
 )
