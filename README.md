@@ -1,8 +1,7 @@
-[![Build Status](https://travis-ci.org/Luzifer/rconfig.svg?branch=master)](https://travis-ci.org/Luzifer/rconfig)
 [![Go Report Card](https://goreportcard.com/badge/github.com/Luzifer/rconfig)](https://goreportcard.com/report/github.com/Luzifer/rconfig)
-[![Documentation](https://badges.fyi/static/godoc/reference/5272B4)](https://godoc.org/github.com/Luzifer/rconfig)
+[![Documentation](https://badges.fyi/static/godoc/reference/5272B4)](https://pkg.go.dev/github.com/Luzifer/rconfig/v2)
 ![](https://badges.fyi/github/license/Luzifer/rconfig)
-[![](https://badges.fyi/github/latest-tag/Luzifer/rconfig)](https://gopkg.in/Luzifer/rconfig.v2)
+![](https://badges.fyi/github/latest-tag/Luzifer/rconfig)
 
 ## Description
 
@@ -13,19 +12,13 @@
 Install by running:
 
 ```
-go get -u github.com/Luzifer/rconfig
-```
-
-OR fetch a specific version:
-
-```
-go get -u gopkg.in/luzifer/rconfig.v2
+go get -u github.com/Luzifer/rconfig/v2
 ```
 
 Run tests by running:
 
 ```
-go test -v -race -cover github.com/Luzifer/rconfig
+go test -v -race -cover github.com/Luzifer/rconfig/v2
 ```
 
 ## Usage
@@ -37,7 +30,7 @@ package main
 
 import (
   "fmt"
-  "github.com/Luzifer/rconfig"
+  "github.com/Luzifer/rconfig/v2"
 )
 
 var (
@@ -56,12 +49,6 @@ func main() {
     cfg.Username,
     cfg.Details.Age)
 }
-```
-
-In Go 1.11 support for Go modules was added. To import the current version using Go modules use this import:
-
-```go
-import rconfig "github.com/Luzifer/rconfig/v2"
 ```
 
 ### Provide variable defaults by using a file
@@ -91,4 +78,4 @@ func main() {
 
 ## More info
 
-You can see the full reference documentation of the rconfig package [at godoc.org](https://godoc.org/github.com/Luzifer/rconfig), or through go's standard documentation system by running `godoc -http=:6060` and browsing to [http://localhost:6060/pkg/github.com/Luzifer/rconfig](http://localhost:6060/pkg/github.com/Luzifer/rconfig) after installation.
+You can see the full reference documentation of the rconfig package [at pkg.go.dev](https://pkg.go.dev/github.com/Luzifer/rconfig/v2)
