@@ -15,10 +15,10 @@ Install by running:
 go get -u github.com/Luzifer/rconfig/v2
 ```
 
-Run tests by running:
+Run tests by running in the checkout folder:
 
 ```
-go test -v -race -cover github.com/Luzifer/rconfig/v2
+go test -v -race -cover ./...
 ```
 
 ## Usage
