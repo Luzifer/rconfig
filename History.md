@@ -1,3 +1,8 @@
+# 2.4.0 / 2021-09-06
+
+  * Switch to repo-runner for tests
+  * Port tests to pure-Go-tests
+
 # 2.3.0 / 2021-08-06
 
   * Drop pre-1.15 support, update dependencies
