@@ -1,36 +1,30 @@
 package rconfig
 
 import (
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
+	"testing"
 )
 
-var _ = Describe("Testing sub-structs", func() {
-	type t struct {
-		Test string `default:"blubb"`
-		Sub  struct {
-			Test string `default:"Hallo"`
-		}
-	}
-
+func TestSubStructParsing(t *testing.T) {
 	var (
-		err  error
-		args []string
-		cfg  t
+		args = []string{}
+		cfg  struct {
+			Test string `default:"blubb"`
+			Sub  struct {
+				Test string `default:"Hallo"`
+			}
+		}
 	)
 
-	BeforeEach(func() {
-		cfg = t{}
-		args = []string{}
-	})
+	if err := parse(&cfg, args); err != nil {
+		t.Fatalf("Parsing options caused error: %s", err)
+	}
 
-	JustBeforeEach(func() {
-		err = parse(&cfg, args)
-	})
-
-	It("should not have errored", func() { Expect(err).NotTo(HaveOccurred()) })
-	It("should have the expected values", func() {
-		Expect(cfg.Test).To(Equal("blubb"))
-		Expect(cfg.Sub.Test).To(Equal("Hallo"))
-	})
-})
+	for _, test := range [][2]interface{}{
+		{cfg.Test, "blubb"},
+		{cfg.Sub.Test, "Hallo"},
+	} {
+		if test[0] != test[1] {
+			t.Errorf("Expected value does not match: %#v != %#v", test[0], test[1])
+		}
+	}
+}

@@ -1,44 +1,38 @@
 package rconfig
 
 import (
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
+	"testing"
 )
 
-var _ = Describe("Testing float parsing", func() {
-	type t struct {
-		Test32  float32 `flag:"float32"`
-		Test32P float32 `flag:"float32p,3"`
-		Test64  float64 `flag:"float64"`
-		Test64P float64 `flag:"float64p,6"`
-		TestDef float32 `default:"66.256"`
-	}
-
+func TestFloatParsing(t *testing.T) {
 	var (
-		err  error
-		args []string
-		cfg  t
-	)
-
-	BeforeEach(func() {
-		cfg = t{}
 		args = []string{
 			"--float32=5.5", "-3", "6.6",
 			"--float64=7.7", "-6", "8.8",
 		}
-	})
+		cfg struct {
+			Test32  float32 `flag:"float32"`
+			Test32P float32 `flag:"float32p,3"`
+			Test64  float64 `flag:"float64"`
+			Test64P float64 `flag:"float64p,6"`
+			TestDef float32 `default:"66.256"`
+		}
+	)
 
-	JustBeforeEach(func() {
-		err = parse(&cfg, args)
-	})
+	if err := parse(&cfg, args); err != nil {
+		t.Fatalf("Parsing options caused error: %s", err)
+	}
 
-	It("should not have errored", func() { Expect(err).NotTo(HaveOccurred()) })
-	It("should have the expected values", func() {
-		Expect(cfg.Test32).To(Equal(float32(5.5)))
-		Expect(cfg.Test32P).To(Equal(float32(6.6)))
-		Expect(cfg.Test64).To(Equal(float64(7.7)))
-		Expect(cfg.Test64P).To(Equal(float64(8.8)))
+	for _, test := range [][2]interface{}{
+		{cfg.Test32, float32(5.5)},
+		{cfg.Test32P, float32(6.6)},
+		{cfg.Test64, float64(7.7)},
+		{cfg.Test64P, float64(8.8)},
 
-		Expect(cfg.TestDef).To(Equal(float32(66.256)))
-	})
-})
+		{cfg.TestDef, float32(66.256)},
+	} {
+		if test[0] != test[1] {
+			t.Errorf("Expected value does not match: %#v != %#v", test[0], test[1])
+		}
+	}
+}

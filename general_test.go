@@ -2,127 +2,90 @@ package rconfig
 
 import (
 	"os"
-
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
+	"reflect"
+	"testing"
 )
 
-var _ = Describe("Testing general parsing", func() {
-	type t struct {
+func TestGeneralExecution(t *testing.T) {
+	type test struct {
 		Test        string `default:"foo" env:"shell" flag:"shell" description:"Test"`
 		Test2       string `default:"blub" env:"testvar" flag:"testvar,t" description:"Test"`
 		DefaultFlag string `default:"goo"`
 		SadFlag     string
 	}
 
+	var (
+		args []string
+		cfg  test
+	)
+
+	exec := func(desc string, tests [][2]interface{}) {
+		if err := parse(&cfg, args); err != nil {
+			t.Fatalf("Parsing options caused error: %s", err)
+		}
+
+		for _, test := range tests {
+			if !reflect.DeepEqual(reflect.ValueOf(test[0]).Elem().Interface(), test[1]) {
+				t.Errorf("%q expected value does not match: %#v != %#v", desc, test[0], test[1])
+			}
+		}
+	}
+
+	cfg = test{}
+	args = []string{
+		"--shell=test23",
+		"-t", "bla",
+	}
+	exec("defined arguments", [][2]interface{}{
+		{&cfg.Test, "test23"},
+		{&cfg.Test2, "bla"},
+		{&cfg.SadFlag, ""},
+		{&cfg.DefaultFlag, "goo"},
+	})
+
+	cfg = test{}
+	args = []string{}
+	exec("no arguments", [][2]interface{}{
+		{&cfg.Test, "foo"},
+	})
+
+	cfg = test{}
+	args = []string{}
+	os.Setenv("shell", "test546")
+	exec("no arguments and set env", [][2]interface{}{
+		{&cfg.Test, "test546"},
+	})
+	os.Unsetenv("shell")
+
+	cfg = test{}
+	args = []string{
+		"--shell=test23",
+		"-t", "bla",
+		"positional1", "positional2",
+	}
+	exec("additional arguments", [][2]interface{}{
+		{&cfg.Test, "test23"},
+		{&cfg.Test2, "bla"},
+		{&cfg.SadFlag, ""},
+		{&cfg.DefaultFlag, "goo"},
+	})
+
+	if !reflect.DeepEqual(Args(), []string{"positional1", "positional2"}) {
+		t.Errorf("expected positional arguments to match")
+	}
+}
+
+func TestValidationIntegration(t *testing.T) {
 	type tValidated struct {
 		Test string `flag:"test" default:"" validate:"nonzero"`
 	}
 
 	var (
-		err  error
-		args []string
-		cfg  t
+		cfgValidated = tValidated{}
+		args         = []string{}
 	)
 
-	Context("with defined arguments", func() {
-		BeforeEach(func() {
-			cfg = t{}
-			args = []string{
-				"--shell=test23",
-				"-t", "bla",
-			}
-		})
-
-		JustBeforeEach(func() {
-			err = parse(&cfg, args)
-		})
-
-		It("should not have errored", func() { Expect(err).NotTo(HaveOccurred()) })
-		It("should have parsed the expected values", func() {
-			Expect(cfg.Test).To(Equal("test23"))
-			Expect(cfg.Test2).To(Equal("bla"))
-			Expect(cfg.SadFlag).To(Equal(""))
-			Expect(cfg.DefaultFlag).To(Equal("goo"))
-		})
-	})
-
-	Context("with no arguments", func() {
-		BeforeEach(func() {
-			cfg = t{}
-			args = []string{}
-		})
-
-		JustBeforeEach(func() {
-			err = parse(&cfg, args)
-		})
-
-		It("should not have errored", func() { Expect(err).NotTo(HaveOccurred()) })
-		It("should have used the default value", func() {
-			Expect(cfg.Test).To(Equal("foo"))
-		})
-	})
-
-	Context("with no arguments and set env", func() {
-		BeforeEach(func() {
-			cfg = t{}
-			args = []string{}
-			os.Setenv("shell", "test546")
-		})
-
-		AfterEach(func() {
-			os.Unsetenv("shell")
-		})
-
-		JustBeforeEach(func() {
-			err = parse(&cfg, args)
-		})
-
-		It("should not have errored", func() { Expect(err).NotTo(HaveOccurred()) })
-		It("should have used the value from env", func() {
-			Expect(cfg.Test).To(Equal("test546"))
-		})
-	})
-
-	Context("with additional arguments", func() {
-		BeforeEach(func() {
-			cfg = t{}
-			args = []string{
-				"--shell=test23",
-				"-t", "bla",
-				"positional1", "positional2",
-			}
-		})
-
-		JustBeforeEach(func() {
-			err = parse(&cfg, args)
-		})
-
-		It("should not have errored", func() { Expect(err).NotTo(HaveOccurred()) })
-		It("should have parsed the expected values", func() {
-			Expect(cfg.Test).To(Equal("test23"))
-			Expect(cfg.Test2).To(Equal("bla"))
-			Expect(cfg.SadFlag).To(Equal(""))
-			Expect(cfg.DefaultFlag).To(Equal("goo"))
-		})
-		It("should have detected the positional arguments", func() {
-			Expect(Args()).To(Equal([]string{"positional1", "positional2"}))
-		})
-	})
-
-	Context("making use of the validator package", func() {
-		var cfgValidated tValidated
-
-		BeforeEach(func() {
-			cfgValidated = tValidated{}
-			args = []string{}
-		})
-
-		JustBeforeEach(func() {
-			err = parseAndValidate(&cfgValidated, args)
-		})
-
-		It("should have errored", func() { Expect(err).To(HaveOccurred()) })
-	})
-
-})
+	if err := parseAndValidate(&cfgValidated, args); err == nil {
+		t.Errorf("Expected error, got none")
+	}
+}

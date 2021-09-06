@@ -1,56 +1,41 @@
 package rconfig
 
 import (
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
+	"testing"
 )
 
-var _ = Describe("Testing errors", func() {
-
-	It("should not accept string as int", func() {
-		Expect(parse(&struct {
+func TestErrors(t *testing.T) {
+	for test, parsable := range map[string]interface{}{
+		"use string as default to int": struct {
 			A int `default:"a"`
-		}{}, []string{})).To(HaveOccurred())
-	})
-
-	It("should not accept string as float", func() {
-		Expect(parse(&struct {
+		}{},
+		"use string as default to float": struct {
 			A float32 `default:"a"`
-		}{}, []string{})).To(HaveOccurred())
-	})
-
-	It("should not accept string as uint", func() {
-		Expect(parse(&struct {
+		}{},
+		"use string as default to uint": struct {
 			A uint `default:"a"`
-		}{}, []string{})).To(HaveOccurred())
-	})
-
-	It("should not accept string as uint in sub-struct", func() {
-		Expect(parse(&struct {
+		}{},
+		"use string as default to uint in sub-struct": struct {
 			B struct {
 				A uint `default:"a"`
 			}
-		}{}, []string{})).To(HaveOccurred())
-	})
+		}{},
+		"use string list as default to int slice": struct {
+			A []int `default:"a,b"`
+		}{},
+	} {
+		if err := parse(&parsable, nil); err == nil {
+			t.Errorf("Expected error but got none. Test: %s", test)
+		}
+	}
 
-	It("should not accept string slice as int slice", func() {
-		Expect(parse(&struct {
-			A []int `default:"a,bn"`
-		}{}, []string{})).To(HaveOccurred())
-	})
+	if err := parse(struct {
+		A string `default:"a"`
+	}{}, nil); err == nil {
+		t.Errorf("Expected error when feeding non-pointer struct to parse")
+	}
 
-	It("should not accept variables not being pointers", func() {
-		cfg := struct {
-			A string `default:"a"`
-		}{}
-
-		Expect(parse(cfg, []string{})).To(HaveOccurred())
-	})
-
-	It("should not accept variables not being pointers to structs", func() {
-		cfg := "test"
-
-		Expect(parse(cfg, []string{})).To(HaveOccurred())
-	})
-
-})
+	if err := parse("test", nil); err == nil {
+		t.Errorf("Expected error when feeding non-pointer string to parse")
+	}
+}

@@ -1,70 +1,37 @@
 package rconfig
 
 import (
-	"os"
-
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
+	"testing"
 )
 
-var _ = Describe("Testing bool parsing", func() {
-	type t struct {
-		Test1 bool `default:"true"`
-		Test2 bool `default:"false" flag:"test2"`
-		Test3 bool `default:"true" flag:"test3,t"`
-		Test4 bool `flag:"test4"`
-	}
-
+func TestBoolParsing(t *testing.T) {
 	var (
-		err  error
-		args []string
-		cfg  t
-	)
-
-	BeforeEach(func() {
-		cfg = t{}
 		args = []string{
 			"--test2",
 			"-t",
 		}
-	})
-
-	JustBeforeEach(func() {
-		err = parse(&cfg, args)
-	})
-
-	It("should not have errored", func() { Expect(err).NotTo(HaveOccurred()) })
-	It("should have the expected values", func() {
-		Expect(cfg.Test1).To(Equal(true))
-		Expect(cfg.Test2).To(Equal(true))
-		Expect(cfg.Test3).To(Equal(true))
-		Expect(cfg.Test4).To(Equal(false))
-	})
-})
-
-var _ = Describe("Testing to set bool from ENV with default", func() {
-	type t struct {
-		Test1 bool `default:"true" env:"TEST1"`
-	}
-
-	var (
-		err  error
-		args []string
-		cfg  t
+		cfg struct {
+			Test1          bool `default:"true"`
+			Test2          bool `default:"false" flag:"test2"`
+			Test3          bool `default:"true" flag:"test3,t"`
+			Test4          bool `flag:"test4"`
+			TestEnvDefault bool `default:"true" env:"AN_ENV_VARIABLE_HOPEFULLY_NEVER_SET_DSFGDF"`
+		}
 	)
 
-	BeforeEach(func() {
-		cfg = t{}
-		args = []string{}
-	})
+	if err := parse(&cfg, args); err != nil {
+		t.Fatalf("Parsing options caused error: %s", err)
+	}
 
-	JustBeforeEach(func() {
-		os.Unsetenv("TEST1")
-		err = parse(&cfg, args)
-	})
-
-	It("should not have errored", func() { Expect(err).NotTo(HaveOccurred()) })
-	It("should have the expected values", func() {
-		Expect(cfg.Test1).To(Equal(true))
-	})
-})
+	for _, test := range [][2]interface{}{
+		{cfg.Test1, true},
+		{cfg.Test2, true},
+		{cfg.Test3, true},
+		{cfg.Test4, false},
+		{cfg.TestEnvDefault, true},
+	} {
+		if test[0] != test[1] {
+			t.Errorf("Expected value does not match: %#v != %#v", test[0], test[1])
+		}
+	}
+}

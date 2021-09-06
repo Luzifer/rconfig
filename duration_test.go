@@ -1,41 +1,34 @@
 package rconfig
 
 import (
+	"testing"
 	"time"
-
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
 )
 
-var _ = Describe("Duration", func() {
-	type t struct {
-		Test    time.Duration `flag:"duration"`
-		TestS   time.Duration `flag:"other-duration,o"`
-		TestDef time.Duration `default:"30h"`
-	}
-
+func TestDurationParsing(t *testing.T) {
 	var (
-		err  error
-		args []string
-		cfg  t
-	)
-
-	BeforeEach(func() {
-		cfg = t{}
 		args = []string{
 			"--duration=23s", "-o", "45m",
 		}
-	})
+		cfg struct {
+			Test    time.Duration `flag:"duration"`
+			TestS   time.Duration `flag:"other-duration,o"`
+			TestDef time.Duration `default:"30h"`
+		}
+	)
 
-	JustBeforeEach(func() {
-		err = parse(&cfg, args)
-	})
+	if err := parse(&cfg, args); err != nil {
+		t.Fatalf("Parsing options caused error: %s", err)
+	}
 
-	It("should not have errored", func() { Expect(err).NotTo(HaveOccurred()) })
-	It("should have the expected values", func() {
-		Expect(cfg.Test).To(Equal(23 * time.Second))
-		Expect(cfg.TestS).To(Equal(45 * time.Minute))
+	for _, test := range [][2]interface{}{
+		{cfg.Test, 23 * time.Second},
+		{cfg.TestS, 45 * time.Minute},
 
-		Expect(cfg.TestDef).To(Equal(30 * time.Hour))
-	})
-})
+		{cfg.TestDef, 30 * time.Hour},
+	} {
+		if test[0] != test[1] {
+			t.Errorf("Expected value does not match: %#v != %#v", test[0], test[1])
+		}
+	}
+}

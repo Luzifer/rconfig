@@ -1,55 +1,45 @@
 package rconfig
 
 import (
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
+	"reflect"
+	"testing"
 )
 
-var _ = Describe("Testing slices", func() {
-	type t struct {
-		Int         []int    `default:"1,2,3" flag:"int"`
-		String      []string `default:"a,b,c" flag:"string"`
-		IntP        []int    `default:"1,2,3" flag:"intp,i"`
-		StringP     []string `default:"a,b,c" flag:"stringp,s"`
-		EmptyString []string `default:""`
-	}
-
+func TestSliceParsing(t *testing.T) {
 	var (
-		err  error
-		args []string
-		cfg  t
-	)
-
-	BeforeEach(func() {
-		cfg = t{}
 		args = []string{
 			"--int=4,5", "-s", "hallo,welt",
 		}
-	})
+		cfg struct {
+			Int         []int    `default:"1,2,3" flag:"int"`
+			String      []string `default:"a,b,c" flag:"string"`
+			IntP        []int    `default:"1,2,3" flag:"intp,i"`
+			StringP     []string `default:"a,b,c" flag:"stringp,s"`
+			EmptyString []string `default:""`
+		}
+	)
 
-	JustBeforeEach(func() {
-		err = parse(&cfg, args)
-	})
+	if err := parse(&cfg, args); err != nil {
+		t.Fatalf("Parsing options caused error: %s", err)
+	}
 
-	It("should not have errored", func() { Expect(err).NotTo(HaveOccurred()) })
-	It("should have the expected values for int-slice", func() {
-		Expect(len(cfg.Int)).To(Equal(2))
-		Expect(cfg.Int).To(Equal([]int{4, 5}))
-		Expect(cfg.Int).NotTo(Equal([]int{5, 4}))
-	})
-	It("should have the expected values for int-shorthand-slice", func() {
-		Expect(len(cfg.IntP)).To(Equal(3))
-		Expect(cfg.IntP).To(Equal([]int{1, 2, 3}))
-	})
-	It("should have the expected values for string-slice", func() {
-		Expect(len(cfg.String)).To(Equal(3))
-		Expect(cfg.String).To(Equal([]string{"a", "b", "c"}))
-	})
-	It("should have the expected values for string-shorthand-slice", func() {
-		Expect(len(cfg.StringP)).To(Equal(2))
-		Expect(cfg.StringP).To(Equal([]string{"hallo", "welt"}))
-	})
-	It("should have no elements for an empty default string", func() {
-		Expect(len(cfg.EmptyString)).To(Equal(0))
-	})
-})
+	for _, test := range [][2]interface{}{
+		{len(cfg.Int), 2},
+		{cfg.Int, []int{4, 5}},
+
+		{len(cfg.IntP), 3},
+		{cfg.IntP, []int{1, 2, 3}},
+
+		{len(cfg.String), 3},
+		{cfg.String, []string{"a", "b", "c"}},
+
+		{len(cfg.StringP), 2},
+		{cfg.StringP, []string{"hallo", "welt"}},
+
+		{len(cfg.EmptyString), 0},
+	} {
+		if !reflect.DeepEqual(test[0], test[1]) {
+			t.Errorf("Expected value does not match: %#v != %#v", test[0], test[1])
+		}
+	}
+}
