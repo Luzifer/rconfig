@@ -1,3 +1,8 @@
+# 2.5.0 / 2023-12-20
+
+  * Update deps, fix linter errors, bump min Go version
+  * [CI] Replace old CI with Github Actions
+
 # 2.4.0 / 2021-09-06
 
   * Switch to repo-runner for tests
