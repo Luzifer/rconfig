@@ -1,10 +1,12 @@
 package rconfig
 
 import (
-	"io/ioutil"
 	"os"
 	"reflect"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestVardefaultParsing(t *testing.T) {
@@ -18,6 +20,7 @@ func TestVardefaultParsing(t *testing.T) {
 	var (
 		cfg         test
 		args        = []string{}
+		err         error
 		vardefaults = map[string]string{
 			"my_secret_value": "veryverysecretkey",
 			"unkownkey":       "hi there",
@@ -26,14 +29,10 @@ func TestVardefaultParsing(t *testing.T) {
 	)
 
 	exec := func(desc string, tests [][2]interface{}) {
-		if err := parse(&cfg, args); err != nil {
-			t.Fatalf("Parsing options caused error: %s", err)
-		}
+		require.NoError(t, parse(&cfg, args))
 
 		for _, test := range tests {
-			if !reflect.DeepEqual(reflect.ValueOf(test[0]).Elem().Interface(), test[1]) {
-				t.Errorf("%q expected value does not match: %#v != %#v", desc, test[0], test[1])
-			}
+			assert.Equal(t, test[1], reflect.ValueOf(test[0]).Elem().Interface(), desc)
 		}
 	}
 
@@ -53,13 +52,14 @@ func TestVardefaultParsing(t *testing.T) {
 		{&cfg.SomeVar, ""},
 	})
 
-	tmp, _ := ioutil.TempFile("", "")
-	defer func() {
-		tmp.Close()
-		os.Remove(tmp.Name())
-	}()
+	tmp, _ := os.CreateTemp("", "")
+	t.Cleanup(func() {
+		tmp.Close()           //nolint:errcheck,gosec,revive // Just cleanup, will be closed automatically
+		os.Remove(tmp.Name()) //nolint:errcheck,gosec,revive // Just cleanup of tmp-file
+	})
 	yamlData := "---\nmy_secret_value: veryverysecretkey\nunknownkey: hi there\nint_var: 42\n"
-	tmp.WriteString(yamlData)
+	_, err = tmp.WriteString(yamlData)
+	require.NoError(t, err)
 	SetVariableDefaults(VarDefaultsFromYAMLFile(tmp.Name()))
 	exec("defaults from YAML file", [][2]interface{}{
 		{&cfg.IntVar, int64(42)},

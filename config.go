@@ -49,21 +49,20 @@ func init() {
 // For your configuration struct you can use the following struct-tags to control
 // the behavior of rconfig:
 //
-//     default: Set a default value
-//     vardefault: Read the default value from the variable defaults
-//     env: Read the value from this environment variable
-//     flag: Flag to read in format "long,short" (for example "listen,l")
-//     description: A help text for Usage output to guide your users
+//	default: Set a default value
+//	vardefault: Read the default value from the variable defaults
+//	env: Read the value from this environment variable
+//	flag: Flag to read in format "long,short" (for example "listen,l")
+//	description: A help text for Usage output to guide your users
 //
 // The format you need to specify those values you can see in the example to this
 // function.
-//
 func Parse(config interface{}) error {
 	return parse(config, nil)
 }
 
 // ParseAndValidate works exactly like Parse but implements an additional run of
-// the go-validator package on the configuration struct. Therefore additonal struct
+// the go-validator package on the configuration struct. Therefore additional struct
 // tags are supported like described in the readme file of the go-validator package:
 //
 // https://github.com/go-validator/validator/tree/v2#usage
@@ -103,14 +102,20 @@ func SetVariableDefaults(defaults map[string]string) {
 	variableDefaults = defaults
 }
 
-func parseAndValidate(in interface{}, args []string) error {
-	if err := parse(in, args); err != nil {
+//revive:disable-next-line:confusing-naming // The public function is only a wrapper with less args
+func parseAndValidate(in interface{}, args []string) (err error) {
+	if err = parse(in, args); err != nil {
 		return err
 	}
 
-	return validator.Validate(in)
+	if err = validator.Validate(in); err != nil {
+		return fmt.Errorf("validating values: %w", err)
+	}
+
+	return nil
 }
 
+//revive:disable-next-line:confusing-naming // The public function is only a wrapper with less args
 func parse(in interface{}, args []string) error {
 	if args == nil {
 		args = os.Args
@@ -123,27 +128,26 @@ func parse(in interface{}, args []string) error {
 	}
 
 	if err := fs.Parse(args); err != nil {
-		return err
+		return fmt.Errorf("parsing flag-set: %w", err)
 	}
 
-	if afterFuncs != nil {
-		for _, f := range afterFuncs {
-			if err := f(); err != nil {
-				return err
-			}
+	for _, f := range afterFuncs {
+		if err := f(); err != nil {
+			return err
 		}
 	}
 
 	return nil
 }
 
+//nolint:funlen,gocognit,gocyclo // Hard to split
 func execTags(in interface{}, fs *pflag.FlagSet) ([]afterFunc, error) {
 	if reflect.TypeOf(in).Kind() != reflect.Ptr {
-		return nil, errors.New("Calling parser with non-pointer")
+		return nil, errors.New("calling parser with non-pointer")
 	}
 
 	if reflect.ValueOf(in).Elem().Kind() != reflect.Struct {
-		return nil, errors.New("Calling parser with pointer to non-struct")
+		return nil, errors.New("calling parser with pointer to non-struct")
 	}
 
 	afterFuncs := []afterFunc{}
@@ -166,11 +170,10 @@ func execTags(in interface{}, fs *pflag.FlagSet) ([]afterFunc, error) {
 		case reflect.TypeOf(time.Duration(0)):
 			v, err := time.ParseDuration(value)
 			if err != nil {
-				if value == "" {
-					v = time.Duration(0)
-				} else {
-					return nil, err
+				if value != "" {
+					return nil, fmt.Errorf("parsing time.Duration: %w", err)
 				}
+				v = time.Duration(0)
 			}
 
 			if typeField.Tag.Get("flag") != "" {
@@ -215,14 +218,13 @@ func execTags(in interface{}, fs *pflag.FlagSet) ([]afterFunc, error) {
 					matched := false
 					for _, tf := range timeParserFormats {
 						if t, err := time.Parse(tf, *sVar); err == nil {
-							matched = true
 							valField.Set(reflect.ValueOf(t))
 							return nil
 						}
 					}
 
 					if !matched {
-						return fmt.Errorf("Value %q did not match expected time formats", *sVar)
+						return fmt.Errorf("value %q did not match expected time formats", *sVar)
 					}
 
 					return nil
@@ -259,11 +261,10 @@ func execTags(in interface{}, fs *pflag.FlagSet) ([]afterFunc, error) {
 		case reflect.Int, reflect.Int8, reflect.Int32, reflect.Int64:
 			vt, err := strconv.ParseInt(value, 10, 64)
 			if err != nil {
-				if value == "" {
-					vt = 0
-				} else {
-					return nil, err
+				if value != "" {
+					return nil, fmt.Errorf("parsing int: %w", err)
 				}
+				vt = 0
 			}
 			if typeField.Tag.Get("flag") != "" {
 				registerFlagInt(typeField.Type.Kind(), fs, valField.Addr().Interface(), parts, vt, typeField.Tag.Get("description"))
@@ -274,11 +275,10 @@ func execTags(in interface{}, fs *pflag.FlagSet) ([]afterFunc, error) {
 		case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
 			vt, err := strconv.ParseUint(value, 10, 64)
 			if err != nil {
-				if value == "" {
-					vt = 0
-				} else {
-					return nil, err
+				if value != "" {
+					return nil, fmt.Errorf("parsing uint: %w", err)
 				}
+				vt = 0
 			}
 			if typeField.Tag.Get("flag") != "" {
 				registerFlagUint(typeField.Type.Kind(), fs, valField.Addr().Interface(), parts, vt, typeField.Tag.Get("description"))
@@ -289,11 +289,10 @@ func execTags(in interface{}, fs *pflag.FlagSet) ([]afterFunc, error) {
 		case reflect.Float32, reflect.Float64:
 			vt, err := strconv.ParseFloat(value, 64)
 			if err != nil {
-				if value == "" {
-					vt = 0.0
-				} else {
-					return nil, err
+				if value != "" {
+					return nil, fmt.Errorf("parsing float: %w", err)
 				}
+				vt = 0.0
 			}
 			if typeField.Tag.Get("flag") != "" {
 				registerFlagFloat(typeField.Type.Kind(), fs, valField.Addr().Interface(), parts, vt, typeField.Tag.Get("description"))
@@ -315,7 +314,7 @@ func execTags(in interface{}, fs *pflag.FlagSet) ([]afterFunc, error) {
 				for _, v := range strings.Split(value, ",") {
 					it, err := strconv.ParseInt(strings.TrimSpace(v), 10, 64)
 					if err != nil {
-						return nil, err
+						return nil, fmt.Errorf("parsing int: %w", err)
 					}
 					def = append(def, int(it))
 				}
@@ -329,7 +328,7 @@ func execTags(in interface{}, fs *pflag.FlagSet) ([]afterFunc, error) {
 				if len(del) == 0 {
 					del = ","
 				}
-				var def = []string{}
+				def := []string{}
 				if value != "" {
 					def = strings.Split(value, del)
 				}
@@ -355,9 +354,9 @@ func registerFlagFloat(t reflect.Kind, fs *pflag.FlagSet, field interface{}, par
 		}
 	case reflect.Float64:
 		if len(parts) == 1 {
-			fs.Float64Var(field.(*float64), parts[0], float64(vt), desc)
+			fs.Float64Var(field.(*float64), parts[0], vt, desc)
 		} else {
-			fs.Float64VarP(field.(*float64), parts[0], parts[1], float64(vt), desc)
+			fs.Float64VarP(field.(*float64), parts[0], parts[1], vt, desc)
 		}
 	}
 }
@@ -384,9 +383,9 @@ func registerFlagInt(t reflect.Kind, fs *pflag.FlagSet, field interface{}, parts
 		}
 	case reflect.Int64:
 		if len(parts) == 1 {
-			fs.Int64Var(field.(*int64), parts[0], int64(vt), desc)
+			fs.Int64Var(field.(*int64), parts[0], vt, desc)
 		} else {
-			fs.Int64VarP(field.(*int64), parts[0], parts[1], int64(vt), desc)
+			fs.Int64VarP(field.(*int64), parts[0], parts[1], vt, desc)
 		}
 	}
 }
@@ -419,9 +418,9 @@ func registerFlagUint(t reflect.Kind, fs *pflag.FlagSet, field interface{}, part
 		}
 	case reflect.Uint64:
 		if len(parts) == 1 {
-			fs.Uint64Var(field.(*uint64), parts[0], uint64(vt), desc)
+			fs.Uint64Var(field.(*uint64), parts[0], vt, desc)
 		} else {
-			fs.Uint64VarP(field.(*uint64), parts[0], parts[1], uint64(vt), desc)
+			fs.Uint64VarP(field.(*uint64), parts[0], parts[1], vt, desc)
 		}
 	}
 }

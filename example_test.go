@@ -1,8 +1,10 @@
-package rconfig
+package rconfig_test
 
 import (
 	"fmt"
 	"os"
+
+	"github.com/Luzifer/rconfig/v2"
 )
 
 func ExampleParse() {
@@ -23,14 +25,16 @@ func ExampleParse() {
 		"--user=Luzifer",
 	}
 
-	Parse(&config)
+	if err := rconfig.Parse(&config); err != nil {
+		panic(err)
+	}
 
 	fmt.Printf("Hello %s, happy birthday for your %dth birthday.",
 		config.Username,
 		config.Details.Age)
 
 	// You can also show an usage message for your user
-	Usage()
+	rconfig.Usage()
 
 	// Output:
 	// Hello Luzifer, happy birthday for your 25th birthday.

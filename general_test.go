@@ -4,6 +4,9 @@ import (
 	"os"
 	"reflect"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestGeneralExecution(t *testing.T) {
@@ -20,14 +23,10 @@ func TestGeneralExecution(t *testing.T) {
 	)
 
 	exec := func(desc string, tests [][2]interface{}) {
-		if err := parse(&cfg, args); err != nil {
-			t.Fatalf("Parsing options caused error: %s", err)
-		}
+		require.NoError(t, parse(&cfg, args))
 
 		for _, test := range tests {
-			if !reflect.DeepEqual(reflect.ValueOf(test[0]).Elem().Interface(), test[1]) {
-				t.Errorf("%q expected value does not match: %#v != %#v", desc, test[0], test[1])
-			}
+			assert.Equal(t, test[1], reflect.ValueOf(test[0]).Elem().Interface(), desc)
 		}
 	}
 
@@ -51,11 +50,11 @@ func TestGeneralExecution(t *testing.T) {
 
 	cfg = test{}
 	args = []string{}
-	os.Setenv("shell", "test546")
+	require.NoError(t, os.Setenv("shell", "test546"))
 	exec("no arguments and set env", [][2]interface{}{
 		{&cfg.Test, "test546"},
 	})
-	os.Unsetenv("shell")
+	require.NoError(t, os.Unsetenv("shell"))
 
 	cfg = test{}
 	args = []string{
@@ -70,9 +69,7 @@ func TestGeneralExecution(t *testing.T) {
 		{&cfg.DefaultFlag, "goo"},
 	})
 
-	if !reflect.DeepEqual(Args(), []string{"positional1", "positional2"}) {
-		t.Errorf("expected positional arguments to match")
-	}
+	assert.Equal(t, []string{"positional1", "positional2"}, Args())
 }
 
 func TestValidationIntegration(t *testing.T) {
@@ -85,7 +82,5 @@ func TestValidationIntegration(t *testing.T) {
 		args         = []string{}
 	)
 
-	if err := parseAndValidate(&cfgValidated, args); err == nil {
-		t.Errorf("Expected error, got none")
-	}
+	assert.Error(t, parseAndValidate(&cfgValidated, args))
 }

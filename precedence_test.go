@@ -3,6 +3,9 @@ package rconfig
 import (
 	"os"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestPrecedence(t *testing.T) {
@@ -11,7 +14,6 @@ func TestPrecedence(t *testing.T) {
 	}
 
 	var (
-		err         error
 		cfg         testcfg
 		args        []string
 		vardefaults map[string]string
@@ -20,20 +22,14 @@ func TestPrecedence(t *testing.T) {
 	exec := func(desc string, fn func() interface{}, exp interface{}) {
 		cfg = testcfg{}
 		SetVariableDefaults(vardefaults)
-		err = parse(&cfg, args)
+		assert.NoError(t, parse(&cfg, args), desc)
 
-		if err != nil {
-			t.Errorf("%q parsing caused error: %s", desc, err)
-		}
-
-		if res := fn(); res != exp {
-			t.Errorf("%q expected value does not match: %#v != %#v", desc, res, exp)
-		}
+		assert.Equal(t, exp, fn())
 	}
 
 	// Provided: Flag, Env, Default, VarDefault
 	args = []string{"-a", "5"}
-	os.Setenv("a", "8")
+	require.NoError(t, os.Setenv("a", "8"))
 	vardefaults = map[string]string{
 		"a": "3",
 	}
@@ -42,7 +38,7 @@ func TestPrecedence(t *testing.T) {
 
 	// Provided: Env, Default, VarDefault
 	args = []string{}
-	os.Setenv("a", "8")
+	require.NoError(t, os.Setenv("a", "8"))
 	vardefaults = map[string]string{
 		"a": "3",
 	}
@@ -51,7 +47,7 @@ func TestPrecedence(t *testing.T) {
 
 	// Provided: Default, VarDefault
 	args = []string{}
-	os.Unsetenv("a")
+	require.NoError(t, os.Unsetenv("a"))
 	vardefaults = map[string]string{
 		"a": "3",
 	}
@@ -60,7 +56,7 @@ func TestPrecedence(t *testing.T) {
 
 	// Provided: Default
 	args = []string{}
-	os.Unsetenv("a")
+	require.NoError(t, os.Unsetenv("a"))
 	vardefaults = map[string]string{}
 
 	exec("Provided: Default", func() interface{} { return cfg.A }, 1)

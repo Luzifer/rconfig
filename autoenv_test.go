@@ -2,6 +2,8 @@ package rconfig
 
 import (
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestDeriveEnvVarName(t *testing.T) {
@@ -17,13 +19,11 @@ func TestDeriveEnvVarName(t *testing.T) {
 		"CamelCase":            "CAMEL_CASE",
 		"_foobar":              "FOOBAR",
 		"ILoveGoAndJSONSoMuch": "I_LOVE_GO_AND_JSON_SO_MUCH",
-		"mrT":         "MR_T",
-		"my_case1":    "MY_CASE1",
-		"MyFieldName": "MY_FIELD_NAME",
-		"SmallCASE":   "SMALL_CASE",
+		"mrT":                  "MR_T",
+		"my_case1":             "MY_CASE1",
+		"MyFieldName":          "MY_FIELD_NAME",
+		"SmallCASE":            "SMALL_CASE",
 	} {
-		if d := deriveEnvVarName(test); d != expect {
-			t.Errorf("Derived variable %q did not match expectation %q", d, expect)
-		}
+		assert.Equal(t, expect, deriveEnvVarName(test))
 	}
 }

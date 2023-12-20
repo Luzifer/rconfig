@@ -1,14 +1,14 @@
 package rconfig
 
 import (
-	"io/ioutil"
+	"os"
 
-	"gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v3"
 )
 
 // VarDefaultsFromYAMLFile reads contents of a file and calls VarDefaultsFromYAML
 func VarDefaultsFromYAMLFile(filename string) map[string]string {
-	data, err := ioutil.ReadFile(filename)
+	data, err := os.ReadFile(filename) //#nosec:G304 // Loading file from var is intended
 	if err != nil {
 		return make(map[string]string)
 	}
