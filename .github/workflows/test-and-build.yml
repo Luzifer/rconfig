@@ -1,0 +1,67 @@
+---
+
+name: test-and-build
+on:
+  push:
+    branches: ['*']
+    tags: ['v*']
+
+  schedule:
+    # Periodically test against current Go version
+    - cron: '23 4 * * 0'
+
+permissions:
+  contents: write
+
+jobs:
+  test-and-build:
+    defaults:
+      run:
+        shell: bash
+
+    container:
+      image: luzifer/archlinux
+      env:
+        CGO_ENABLED: 1
+        GOPATH: /go
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Enable custom AUR package repo
+        run: echo -e "[luzifer]\nSigLevel = Never\nServer = https://archrepo.hub.luzifer.io/\$arch" >>/etc/pacman.conf
+
+      - name: Install required packages
+        run: |
+          pacman -Syy --noconfirm \
+            base-devel \
+            git \
+            go \
+            golangci-lint-bin \
+            trivy
+
+      - uses: actions/checkout@v3
+
+      - name: Marking workdir safe
+        run: git config --global --add safe.directory /__w/rconfig/rconfig
+
+      - name: Run coverage-tests
+        run: |
+          go test -v -race -cover ./...
+
+      - name: Check code for linter errors
+        run: |
+          golangci-lint run ./...
+
+      - name: Run Trivy check
+        run: |
+          trivy fs . \
+            --dependency-tree \
+            --exit-code 1 \
+            --format table \
+            --ignore-unfixed \
+            --quiet \
+            --scanners license,misconfig,secret,vuln \
+            --severity HIGH,CRITICAL
+
+...
