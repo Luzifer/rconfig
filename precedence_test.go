@@ -29,7 +29,7 @@ func TestPrecedence(t *testing.T) {
 
 	// Provided: Flag, Env, Default, VarDefault
 	args = []string{"-a", "5"}
-	require.NoError(t, os.Setenv("a", "8"))
+	t.Setenv("a", "8")
 	vardefaults = map[string]string{
 		"a": "3",
 	}
@@ -38,7 +38,7 @@ func TestPrecedence(t *testing.T) {
 
 	// Provided: Env, Default, VarDefault
 	args = []string{}
-	require.NoError(t, os.Setenv("a", "8"))
+	t.Setenv("a", "8")
 	vardefaults = map[string]string{
 		"a": "3",
 	}

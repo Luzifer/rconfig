@@ -50,7 +50,7 @@ func TestGeneralExecution(t *testing.T) {
 
 	cfg = test{}
 	args = []string{}
-	require.NoError(t, os.Setenv("shell", "test546"))
+	t.Setenv("shell", "test546")
 	exec("no arguments and set env", [][2]interface{}{
 		{&cfg.Test, "test546"},
 	})
