@@ -1,3 +1,7 @@
+# 2.5.1 / 2024-08-18
+
+  * CI: Update linter config, fix linter errors, update CI config
+
 # 2.5.0 / 2023-12-20
 
   * Update deps, fix linter errors, bump min Go version
