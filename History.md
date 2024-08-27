@@ -1,3 +1,9 @@
+# 2.5.2 / 2024-08-27
+
+  * Fix: Add support for int16 flags
+  * Fix: Ensure int/uint do not overflow
+  * Lint: Replace deprecated linter
+
 # 2.5.1 / 2024-08-18
 
   * CI: Update linter config, fix linter errors, update CI config
