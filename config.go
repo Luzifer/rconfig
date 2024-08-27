@@ -259,7 +259,7 @@ func execTags(in interface{}, fs *pflag.FlagSet) ([]afterFunc, error) {
 			}
 
 		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-			vt, err := strconv.ParseInt(value, 10, 64)
+			vt, err := parseIntForType(value, 10, typeField.Type.Kind()) //nolint:mnd
 			if err != nil {
 				if value != "" {
 					return nil, fmt.Errorf("parsing int: %w", err)
@@ -273,7 +273,7 @@ func execTags(in interface{}, fs *pflag.FlagSet) ([]afterFunc, error) {
 			}
 
 		case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-			vt, err := strconv.ParseUint(value, 10, 64)
+			vt, err := parseUintForType(value, 10, typeField.Type.Kind()) //nolint:mnd
 			if err != nil {
 				if value != "" {
 					return nil, fmt.Errorf("parsing uint: %w", err)
@@ -371,21 +371,21 @@ func registerFlagInt(t reflect.Kind, fs *pflag.FlagSet, field interface{}, parts
 		}
 	case reflect.Int8:
 		if len(parts) == 1 {
-			fs.Int8Var(field.(*int8), parts[0], int8(vt), desc)
+			fs.Int8Var(field.(*int8), parts[0], int8(vt), desc) //#nosec:G115 - Variable is guaranteed to match by strconv
 		} else {
-			fs.Int8VarP(field.(*int8), parts[0], parts[1], int8(vt), desc)
+			fs.Int8VarP(field.(*int8), parts[0], parts[1], int8(vt), desc) //#nosec:G115 - Variable is guaranteed to match by strconv
 		}
 	case reflect.Int16:
 		if len(parts) == 1 {
-			fs.Int16Var(field.(*int16), parts[0], int16(vt), desc)
+			fs.Int16Var(field.(*int16), parts[0], int16(vt), desc) //#nosec:G115 - Variable is guaranteed to match by strconv
 		} else {
-			fs.Int16VarP(field.(*int16), parts[0], parts[1], int16(vt), desc)
+			fs.Int16VarP(field.(*int16), parts[0], parts[1], int16(vt), desc) //#nosec:G115 - Variable is guaranteed to match by strconv
 		}
 	case reflect.Int32:
 		if len(parts) == 1 {
-			fs.Int32Var(field.(*int32), parts[0], int32(vt), desc)
+			fs.Int32Var(field.(*int32), parts[0], int32(vt), desc) //#nosec:G115 - Variable is guaranteed to match by strconv
 		} else {
-			fs.Int32VarP(field.(*int32), parts[0], parts[1], int32(vt), desc)
+			fs.Int32VarP(field.(*int32), parts[0], parts[1], int32(vt), desc) //#nosec:G115 - Variable is guaranteed to match by strconv
 		}
 	case reflect.Int64:
 		if len(parts) == 1 {
@@ -406,21 +406,21 @@ func registerFlagUint(t reflect.Kind, fs *pflag.FlagSet, field interface{}, part
 		}
 	case reflect.Uint8:
 		if len(parts) == 1 {
-			fs.Uint8Var(field.(*uint8), parts[0], uint8(vt), desc)
+			fs.Uint8Var(field.(*uint8), parts[0], uint8(vt), desc) //#nosec:G115 - Variable is guaranteed to match by strconv
 		} else {
-			fs.Uint8VarP(field.(*uint8), parts[0], parts[1], uint8(vt), desc)
+			fs.Uint8VarP(field.(*uint8), parts[0], parts[1], uint8(vt), desc) //#nosec:G115 - Variable is guaranteed to match by strconv
 		}
 	case reflect.Uint16:
 		if len(parts) == 1 {
-			fs.Uint16Var(field.(*uint16), parts[0], uint16(vt), desc)
+			fs.Uint16Var(field.(*uint16), parts[0], uint16(vt), desc) //#nosec:G115 - Variable is guaranteed to match by strconv
 		} else {
-			fs.Uint16VarP(field.(*uint16), parts[0], parts[1], uint16(vt), desc)
+			fs.Uint16VarP(field.(*uint16), parts[0], parts[1], uint16(vt), desc) //#nosec:G115 - Variable is guaranteed to match by strconv
 		}
 	case reflect.Uint32:
 		if len(parts) == 1 {
-			fs.Uint32Var(field.(*uint32), parts[0], uint32(vt), desc)
+			fs.Uint32Var(field.(*uint32), parts[0], uint32(vt), desc) //#nosec:G115 - Variable is guaranteed to match by strconv
 		} else {
-			fs.Uint32VarP(field.(*uint32), parts[0], parts[1], uint32(vt), desc)
+			fs.Uint32VarP(field.(*uint32), parts[0], parts[1], uint32(vt), desc) //#nosec:G115 - Variable is guaranteed to match by strconv
 		}
 	case reflect.Uint64:
 		if len(parts) == 1 {
