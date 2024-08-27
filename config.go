@@ -258,7 +258,7 @@ func execTags(in interface{}, fs *pflag.FlagSet) ([]afterFunc, error) {
 				valField.SetBool(v)
 			}
 
-		case reflect.Int, reflect.Int8, reflect.Int32, reflect.Int64:
+		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 			vt, err := strconv.ParseInt(value, 10, 64)
 			if err != nil {
 				if value != "" {
@@ -374,6 +374,12 @@ func registerFlagInt(t reflect.Kind, fs *pflag.FlagSet, field interface{}, parts
 			fs.Int8Var(field.(*int8), parts[0], int8(vt), desc)
 		} else {
 			fs.Int8VarP(field.(*int8), parts[0], parts[1], int8(vt), desc)
+		}
+	case reflect.Int16:
+		if len(parts) == 1 {
+			fs.Int16Var(field.(*int16), parts[0], int16(vt), desc)
+		} else {
+			fs.Int16VarP(field.(*int16), parts[0], parts[1], int16(vt), desc)
 		}
 	case reflect.Int32:
 		if len(parts) == 1 {
