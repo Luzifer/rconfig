@@ -1,5 +1,4 @@
 ---
-
 name: test-and-build
 on:
   push:
@@ -20,7 +19,7 @@ jobs:
         shell: bash
 
     container:
-      image: luzifer/gh-arch-env
+      image: ghcr.io/luzifer-docker/gh-arch-env
       env:
         CGO_ENABLED: 1
         GOPATH: /go
@@ -56,5 +55,3 @@ jobs:
             --quiet \
             --scanners license,misconfig,secret,vuln \
             --severity HIGH,CRITICAL
-
-...
