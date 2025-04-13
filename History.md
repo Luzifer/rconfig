@@ -1,3 +1,10 @@
+# 2.6.0 / 2025-04-13
+
+  * Update pflag, require Go 1.23
+  * Lint: Update linter config, disable struct-tag on validate test
+  * CI: Pin checkout action
+  * CI: Switch to Github hosted image
+
 # 2.5.2 / 2024-08-27
 
   * Fix: Add support for int16 flags
