@@ -18,19 +18,10 @@ jobs:
       run:
         shell: bash
 
-    container:
-      image: ghcr.io/luzifer-docker/action-env:master@sha256:73a65e7d437eac915825726c0df83323ceb87fd9caf51a0486fbdf5c94a55ab8
-      env:
-        CGO_ENABLED: 1
-        GOPATH: /go
-
-    runs-on: ubuntu-latest
+    runs-on: forgejo
 
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-
-      - name: Marking workdir safe
-        run: git config --global --add safe.directory /__w/rconfig/rconfig
 
       - name: Run coverage-tests
         run: go test -v -race -cover ./...
