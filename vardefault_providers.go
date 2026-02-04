@@ -3,7 +3,7 @@ package rconfig
 import (
 	"os"
 
-	"gopkg.in/yaml.v3"
+	"go.yaml.in/yaml/v3"
 )
 
 // VarDefaultsFromYAMLFile reads contents of a file and calls VarDefaultsFromYAML
