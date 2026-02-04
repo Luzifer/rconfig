@@ -1,3 +1,10 @@
+# 2.6.1 / 2026-02-05
+
+  * fix(deps): update module github.com/spf13/pflag to v1.0.10
+  * fix(deps): update module github.com/stretchr/testify to v1.11.1
+  * chore: drop support for Go 1.23
+  * chore: replace abandoned YAML package
+
 # 2.6.0 / 2025-04-13
 
   * Update pflag, require Go 1.23
