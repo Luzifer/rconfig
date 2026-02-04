@@ -4,7 +4,7 @@ go 1.23
 
 require (
 	github.com/spf13/pflag v1.0.10
-	github.com/stretchr/testify v1.8.4
+	github.com/stretchr/testify v1.11.1
 	gopkg.in/validator.v2 v2.0.1
 	gopkg.in/yaml.v3 v3.0.1
 )
