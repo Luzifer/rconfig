@@ -8,7 +8,7 @@ import (
 
 // VarDefaultsFromYAMLFile reads contents of a file and calls VarDefaultsFromYAML
 func VarDefaultsFromYAMLFile(filename string) map[string]string {
-	data, err := os.ReadFile(filename) //#nosec:G304 // Loading file from var is intended
+	data, err := os.ReadFile(filename) //#nosec:G304,G703 // Loading file from var is intended
 	if err != nil {
 		return make(map[string]string)
 	}

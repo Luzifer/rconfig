@@ -91,7 +91,7 @@ func AutoEnv(enable bool) {
 // os.Stdout. The defaults are derived from the `default` struct-tag and the ENV.
 func Usage() {
 	if fs != nil && fs.Parsed() {
-		fmt.Fprintf(os.Stderr, "Usage of %s:\n", os.Args[0])
+		fmt.Fprintf(os.Stderr, "Usage of %s:\n", os.Args[0]) //#nosec:G705 // False-Positive
 		fs.PrintDefaults()
 	}
 }
