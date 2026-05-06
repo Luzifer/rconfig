@@ -57,7 +57,7 @@ func init() {
 //
 // The format you need to specify those values you can see in the example to this
 // function.
-func Parse(config interface{}) error {
+func Parse(config any) error {
 	return parse(config, nil)
 }
 
@@ -66,7 +66,7 @@ func Parse(config interface{}) error {
 // tags are supported like described in the readme file of the go-validator package:
 //
 // https://github.com/go-validator/validator/tree/v2#usage
-func ParseAndValidate(config interface{}) error {
+func ParseAndValidate(config any) error {
 	return parseAndValidate(config, nil)
 }
 
@@ -103,7 +103,7 @@ func SetVariableDefaults(defaults map[string]string) {
 }
 
 //revive:disable-next-line:confusing-naming // The public function is only a wrapper with less args
-func parseAndValidate(in interface{}, args []string) (err error) {
+func parseAndValidate(in any, args []string) (err error) {
 	if err = parse(in, args); err != nil {
 		return err
 	}
@@ -116,7 +116,7 @@ func parseAndValidate(in interface{}, args []string) (err error) {
 }
 
 //revive:disable-next-line:confusing-naming // The public function is only a wrapper with less args
-func parse(in interface{}, args []string) error {
+func parse(in any, args []string) error {
 	if args == nil {
 		args = os.Args
 	}
@@ -141,8 +141,8 @@ func parse(in interface{}, args []string) error {
 }
 
 //nolint:funlen,gocognit,gocyclo // Hard to split
-func execTags(in interface{}, fs *pflag.FlagSet) ([]afterFunc, error) {
-	if reflect.TypeOf(in).Kind() != reflect.Ptr {
+func execTags(in any, fs *pflag.FlagSet) ([]afterFunc, error) {
+	if reflect.TypeOf(in).Kind() != reflect.Pointer {
 		return nil, errors.New("calling parser with non-pointer")
 	}
 
@@ -150,7 +150,7 @@ func execTags(in interface{}, fs *pflag.FlagSet) ([]afterFunc, error) {
 		return nil, errors.New("calling parser with pointer to non-struct")
 	}
 
-	afterFuncs := []afterFunc{}
+	var afterFuncs []afterFunc
 
 	st := reflect.ValueOf(in).Elem()
 	for i := 0; i < st.NumField(); i++ {
@@ -167,7 +167,7 @@ func execTags(in interface{}, fs *pflag.FlagSet) ([]afterFunc, error) {
 		parts := strings.Split(typeField.Tag.Get("flag"), ",")
 
 		switch typeField.Type {
-		case reflect.TypeOf(time.Duration(0)):
+		case reflect.TypeFor[time.Duration]():
 			v, err := time.ParseDuration(value)
 			if err != nil {
 				if value != "" {
@@ -187,7 +187,7 @@ func execTags(in interface{}, fs *pflag.FlagSet) ([]afterFunc, error) {
 			}
 			continue
 
-		case reflect.TypeOf(time.Time{}):
+		case reflect.TypeFor[time.Time]():
 			var sVar string
 
 			if typeField.Tag.Get("flag") != "" {
@@ -259,7 +259,7 @@ func execTags(in interface{}, fs *pflag.FlagSet) ([]afterFunc, error) {
 			}
 
 		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-			vt, err := parseIntForType(value, 10, typeField.Type.Kind()) //nolint:mnd
+			vt, err := parseIntForType(value, 10, typeField.Type.Kind()) //revive:disable-line:add-constant // wrapper around strconv.Parse*
 			if err != nil {
 				if value != "" {
 					return nil, fmt.Errorf("parsing int: %w", err)
@@ -273,7 +273,7 @@ func execTags(in interface{}, fs *pflag.FlagSet) ([]afterFunc, error) {
 			}
 
 		case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-			vt, err := parseUintForType(value, 10, typeField.Type.Kind()) //nolint:mnd
+			vt, err := parseUintForType(value, 10, typeField.Type.Kind()) //revive:disable-line:add-constant // wrapper around strconv.Parse*
 			if err != nil {
 				if value != "" {
 					return nil, fmt.Errorf("parsing uint: %w", err)
@@ -310,8 +310,8 @@ func execTags(in interface{}, fs *pflag.FlagSet) ([]afterFunc, error) {
 		case reflect.Slice:
 			switch typeField.Type.Elem().Kind() {
 			case reflect.Int:
-				def := []int{}
-				for _, v := range strings.Split(value, ",") {
+				var def []int
+				for v := range strings.SplitSeq(value, ",") {
 					it, err := strconv.ParseInt(strings.TrimSpace(v), 10, 64)
 					if err != nil {
 						return nil, fmt.Errorf("parsing int: %w", err)
@@ -328,7 +328,7 @@ func execTags(in interface{}, fs *pflag.FlagSet) ([]afterFunc, error) {
 				if len(del) == 0 {
 					del = ","
 				}
-				def := []string{}
+				var def []string
 				if value != "" {
 					def = strings.Split(value, del)
 				}
@@ -344,7 +344,7 @@ func execTags(in interface{}, fs *pflag.FlagSet) ([]afterFunc, error) {
 	return afterFuncs, nil
 }
 
-func registerFlagFloat(t reflect.Kind, fs *pflag.FlagSet, field interface{}, parts []string, vt float64, desc string) {
+func registerFlagFloat(t reflect.Kind, fs *pflag.FlagSet, field any, parts []string, vt float64, desc string) {
 	switch t {
 	case reflect.Float32:
 		if len(parts) == 1 {
@@ -361,7 +361,7 @@ func registerFlagFloat(t reflect.Kind, fs *pflag.FlagSet, field interface{}, par
 	}
 }
 
-func registerFlagInt(t reflect.Kind, fs *pflag.FlagSet, field interface{}, parts []string, vt int64, desc string) {
+func registerFlagInt(t reflect.Kind, fs *pflag.FlagSet, field any, parts []string, vt int64, desc string) {
 	switch t {
 	case reflect.Int:
 		if len(parts) == 1 {
@@ -396,7 +396,7 @@ func registerFlagInt(t reflect.Kind, fs *pflag.FlagSet, field interface{}, parts
 	}
 }
 
-func registerFlagUint(t reflect.Kind, fs *pflag.FlagSet, field interface{}, parts []string, vt uint64, desc string) {
+func registerFlagUint(t reflect.Kind, fs *pflag.FlagSet, field any, parts []string, vt uint64, desc string) {
 	switch t {
 	case reflect.Uint:
 		if len(parts) == 1 {

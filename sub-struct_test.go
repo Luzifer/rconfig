@@ -6,7 +6,7 @@ import (
 
 func TestSubStructParsing(t *testing.T) {
 	var (
-		args = []string{}
+		args []string
 		cfg  struct {
 			Test string `default:"blubb"`
 			Sub  struct {
@@ -19,7 +19,7 @@ func TestSubStructParsing(t *testing.T) {
 		t.Fatalf("Parsing options caused error: %s", err)
 	}
 
-	for _, test := range [][2]interface{}{
+	for _, test := range [][2]any{
 		{cfg.Test, "blubb"},
 		{cfg.Sub.Test, "Hallo"},
 	} {

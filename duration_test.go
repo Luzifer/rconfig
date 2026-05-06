@@ -21,7 +21,7 @@ func TestDurationParsing(t *testing.T) {
 		t.Fatalf("Parsing options caused error: %s", err)
 	}
 
-	for _, test := range [][2]interface{}{
+	for _, test := range [][2]any{
 		{cfg.Test, 23 * time.Second},
 		{cfg.TestS, 45 * time.Minute},
 

@@ -19,10 +19,10 @@ func TestPrecedence(t *testing.T) {
 		vardefaults map[string]string
 	)
 
-	exec := func(desc string, fn func() interface{}, exp interface{}) {
+	exec := func(desc string, fn func() any, exp any) {
 		cfg = testcfg{}
 		SetVariableDefaults(vardefaults)
-		assert.NoError(t, parse(&cfg, args), desc)
+		require.NoError(t, parse(&cfg, args), desc)
 
 		assert.Equal(t, exp, fn())
 	}
@@ -34,30 +34,30 @@ func TestPrecedence(t *testing.T) {
 		"a": "3",
 	}
 
-	exec("Provided: Flag, Env, Default, VarDefault", func() interface{} { return cfg.A }, 5)
+	exec("Provided: Flag, Env, Default, VarDefault", func() any { return cfg.A }, 5)
 
 	// Provided: Env, Default, VarDefault
-	args = []string{}
+	args = nil
 	t.Setenv("a", "8")
 	vardefaults = map[string]string{
 		"a": "3",
 	}
 
-	exec("Provided: Env, Default, VarDefault", func() interface{} { return cfg.A }, 8)
+	exec("Provided: Env, Default, VarDefault", func() any { return cfg.A }, 8)
 
 	// Provided: Default, VarDefault
-	args = []string{}
+	args = nil
 	require.NoError(t, os.Unsetenv("a"))
 	vardefaults = map[string]string{
 		"a": "3",
 	}
 
-	exec("Provided: Default, VarDefault", func() interface{} { return cfg.A }, 3)
+	exec("Provided: Default, VarDefault", func() any { return cfg.A }, 3)
 
 	// Provided: Default
-	args = []string{}
+	args = nil
 	require.NoError(t, os.Unsetenv("a"))
-	vardefaults = map[string]string{}
+	vardefaults = make(map[string]string)
 
-	exec("Provided: Default", func() interface{} { return cfg.A }, 1)
+	exec("Provided: Default", func() any { return cfg.A }, 1)
 }

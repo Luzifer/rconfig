@@ -23,7 +23,7 @@ func TestBoolParsing(t *testing.T) {
 		t.Fatalf("Parsing options caused error: %s", err)
 	}
 
-	for _, test := range [][2]interface{}{
+	for _, test := range [][2]any{
 		{cfg.Test1, true},
 		{cfg.Test2, true},
 		{cfg.Test3, true},

@@ -22,7 +22,7 @@ func TestGeneralExecution(t *testing.T) {
 		cfg  test
 	)
 
-	exec := func(desc string, tests [][2]interface{}) {
+	exec := func(desc string, tests [][2]any) {
 		require.NoError(t, parse(&cfg, args))
 
 		for _, test := range tests {
@@ -35,7 +35,7 @@ func TestGeneralExecution(t *testing.T) {
 		"--shell=test23",
 		"-t", "bla",
 	}
-	exec("defined arguments", [][2]interface{}{
+	exec("defined arguments", [][2]any{
 		{&cfg.Test, "test23"},
 		{&cfg.Test2, "bla"},
 		{&cfg.SadFlag, ""},
@@ -43,15 +43,15 @@ func TestGeneralExecution(t *testing.T) {
 	})
 
 	cfg = test{}
-	args = []string{}
-	exec("no arguments", [][2]interface{}{
+	args = nil
+	exec("no arguments", [][2]any{
 		{&cfg.Test, "foo"},
 	})
 
 	cfg = test{}
-	args = []string{}
+	args = nil
 	t.Setenv("shell", "test546")
-	exec("no arguments and set env", [][2]interface{}{
+	exec("no arguments and set env", [][2]any{
 		{&cfg.Test, "test546"},
 	})
 	require.NoError(t, os.Unsetenv("shell"))
@@ -62,7 +62,7 @@ func TestGeneralExecution(t *testing.T) {
 		"-t", "bla",
 		"positional1", "positional2",
 	}
-	exec("additional arguments", [][2]interface{}{
+	exec("additional arguments", [][2]any{
 		{&cfg.Test, "test23"},
 		{&cfg.Test2, "bla"},
 		{&cfg.SadFlag, ""},
@@ -74,12 +74,12 @@ func TestGeneralExecution(t *testing.T) {
 
 func TestValidationIntegration(t *testing.T) {
 	type tValidated struct {
-		Test string `flag:"test" default:"" validate:"nonzero"` //revive:disable-line:struct-tag
+		Test string `flag:"test" default:"" validate:"nonzero"` //revive:disable-line:struct-tag // for our validator this is a valid value
 	}
 
 	var (
 		cfgValidated = tValidated{}
-		args         = []string{}
+		args         []string
 	)
 
 	assert.Error(t, parseAndValidate(&cfgValidated, args))

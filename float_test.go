@@ -23,7 +23,7 @@ func TestFloatParsing(t *testing.T) {
 		t.Fatalf("Parsing options caused error: %s", err)
 	}
 
-	for _, test := range [][2]interface{}{
+	for _, test := range [][2]any{
 		{cfg.Test32, float32(5.5)},
 		{cfg.Test32P, float32(6.6)},
 		{cfg.Test64, float64(7.7)},

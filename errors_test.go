@@ -3,11 +3,11 @@ package rconfig
 import (
 	"testing"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestErrors(t *testing.T) {
-	for test, parsable := range map[string]interface{}{
+	for test, parsable := range map[string]any{
 		"use string as default to int": struct {
 			A int `default:"a"` //revive:disable-line:struct-tag // Intentional error for testing
 		}{},
@@ -26,12 +26,12 @@ func TestErrors(t *testing.T) {
 			A []int `default:"a,b"`
 		}{},
 	} {
-		assert.Error(t, parse(&parsable, nil), test) //#nosec:G601 // Fine for this test
+		require.Error(t, parse(&parsable, nil), test) //#nosec:G601 // Fine for this test
 	}
 
-	assert.Error(t, parse(struct {
+	require.Error(t, parse(struct {
 		A string `default:"a"`
 	}{}, nil), "feeding non-pointer to parse")
 
-	assert.Error(t, parse("test", nil), "feeding non-pointer string to parse")
+	require.Error(t, parse("test", nil), "feeding non-pointer string to parse")
 }

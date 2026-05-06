@@ -19,7 +19,7 @@ func TestVardefaultParsing(t *testing.T) {
 
 	var (
 		cfg         test
-		args        = []string{}
+		args        []string
 		err         error
 		vardefaults = map[string]string{
 			"my_secret_value": "veryverysecretkey",
@@ -28,7 +28,7 @@ func TestVardefaultParsing(t *testing.T) {
 		}
 	)
 
-	exec := func(desc string, tests [][2]interface{}) {
+	exec := func(desc string, tests [][2]any) {
 		require.NoError(t, parse(&cfg, args))
 
 		for _, test := range tests {
@@ -37,7 +37,7 @@ func TestVardefaultParsing(t *testing.T) {
 	}
 
 	SetVariableDefaults(vardefaults)
-	exec("manually provided variables", [][2]interface{}{
+	exec("manually provided variables", [][2]any{
 		{&cfg.IntVar, int64(42)},
 		{&cfg.MySecretValue, "veryverysecretkey"},
 		{&cfg.MyUsername, "luzifer"},
@@ -45,23 +45,23 @@ func TestVardefaultParsing(t *testing.T) {
 	})
 
 	SetVariableDefaults(VarDefaultsFromYAML([]byte("---\nmy_secret_value: veryverysecretkey\nunknownkey: hi there\nint_var: 42\n")))
-	exec("defaults from YAML data", [][2]interface{}{
+	exec("defaults from YAML data", [][2]any{
 		{&cfg.IntVar, int64(42)},
 		{&cfg.MySecretValue, "veryverysecretkey"},
 		{&cfg.MyUsername, "luzifer"},
 		{&cfg.SomeVar, ""},
 	})
 
-	tmp, _ := os.CreateTemp("", "")
+	tmp, _ := os.CreateTemp(t.TempDir(), "")
 	t.Cleanup(func() {
-		tmp.Close()           //nolint:errcheck,gosec,revive // Just cleanup, will be closed automatically
-		os.Remove(tmp.Name()) //nolint:errcheck,gosec,revive // Just cleanup of tmp-file
+		tmp.Close()           //nolint:errcheck,gosec // Just cleanup, will be closed automatically
+		os.Remove(tmp.Name()) //nolint:errcheck,gosec // Just cleanup of tmp-file
 	})
 	yamlData := "---\nmy_secret_value: veryverysecretkey\nunknownkey: hi there\nint_var: 42\n"
 	_, err = tmp.WriteString(yamlData)
 	require.NoError(t, err)
 	SetVariableDefaults(VarDefaultsFromYAMLFile(tmp.Name()))
-	exec("defaults from YAML file", [][2]interface{}{
+	exec("defaults from YAML file", [][2]any{
 		{&cfg.IntVar, int64(42)},
 		{&cfg.MySecretValue, "veryverysecretkey"},
 		{&cfg.MyUsername, "luzifer"},
@@ -69,7 +69,7 @@ func TestVardefaultParsing(t *testing.T) {
 	})
 
 	SetVariableDefaults(VarDefaultsFromYAML([]byte("---\nmy_secret_value = veryverysecretkey\nunknownkey = hi there\nint_var = 42\n")))
-	exec("defaults from invalid YAML data", [][2]interface{}{
+	exec("defaults from invalid YAML data", [][2]any{
 		{&cfg.IntVar, int64(23)},
 		{&cfg.MySecretValue, "secret"},
 		{&cfg.MyUsername, "luzifer"},
@@ -77,7 +77,7 @@ func TestVardefaultParsing(t *testing.T) {
 	})
 
 	SetVariableDefaults(VarDefaultsFromYAMLFile("/tmp/this_file_should_not_exist_146e26723r"))
-	exec("defaults from non-existing YAML file", [][2]interface{}{
+	exec("defaults from non-existing YAML file", [][2]any{
 		{&cfg.IntVar, int64(23)},
 		{&cfg.MySecretValue, "secret"},
 		{&cfg.MyUsername, "luzifer"},

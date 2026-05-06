@@ -2,13 +2,22 @@ package rconfig
 
 import "strings"
 
-type characterClass [2]rune
+type (
+	characterClass [2]rune
+
+	characterClasses []characterClass
+)
+
+var (
+	charGroupUpperLetter = characterClass{'A', 'Z'}
+	charGroupLowerLetter = characterClass{'a', 'z'}
+	charGroupNumber      = characterClass{'0', '9'}
+	charGroupLowerNumber = characterClasses{charGroupLowerLetter, charGroupNumber}
+)
 
 func (c characterClass) Contains(r rune) bool {
 	return c[0] <= r && c[1] >= r
 }
-
-type characterClasses []characterClass
 
 func (c characterClasses) Contains(r rune) bool {
 	for _, cc := range c {
@@ -18,13 +27,6 @@ func (c characterClasses) Contains(r rune) bool {
 	}
 	return false
 }
-
-var (
-	charGroupUpperLetter = characterClass{'A', 'Z'}
-	charGroupLowerLetter = characterClass{'a', 'z'}
-	charGroupNumber      = characterClass{'0', '9'}
-	charGroupLowerNumber = characterClasses{charGroupLowerLetter, charGroupNumber}
-)
 
 func deriveEnvVarName(s string) string {
 	var (
@@ -37,7 +39,7 @@ func deriveEnvVarName(s string) string {
 		case charGroupUpperLetter.Contains(l):
 			if len(word) > 0 && charGroupLowerNumber.Contains(word[len(word)-1]) {
 				words = append(words, string(word))
-				word = []rune{}
+				word = nil
 			}
 			word = append(word, l)
 
@@ -55,7 +57,7 @@ func deriveEnvVarName(s string) string {
 			if len(word) > 0 {
 				words = append(words, string(word))
 			}
-			word = []rune{}
+			word = nil
 		}
 	}
 	words = append(words, string(word))

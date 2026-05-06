@@ -32,7 +32,7 @@ func TestIntParsing(t *testing.T) {
 		t.Fatalf("Parsing options caused error: %s", err)
 	}
 
-	for _, test := range [][2]interface{}{
+	for _, test := range [][2]any{
 		{cfg.Test, int(1)},
 		{cfg.TestP, 2},
 		{cfg.Test8, int8(3)},

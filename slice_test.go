@@ -23,7 +23,7 @@ func TestSliceParsing(t *testing.T) {
 		t.Fatalf("Parsing options caused error: %s", err)
 	}
 
-	for _, test := range [][2]interface{}{
+	for _, test := range [][2]any{
 		{len(cfg.Int), 2},
 		{cfg.Int, []int{4, 5}},
 
