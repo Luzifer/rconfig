@@ -1,3 +1,7 @@
+# 2.6.2 / 2026-05-06
+
+  * chore: update linter config; modernize code; drop Go 1.24 support
+
 # 2.6.1 / 2026-02-05
 
   * fix(deps): update module github.com/spf13/pflag to v1.0.10
