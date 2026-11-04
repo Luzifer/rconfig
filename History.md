@@ -1,3 +1,9 @@
+# 2.6.3 / 2026-11-04
+
+  * fix(deps): update module github.com/stretchr/testify to v1.12.1 (#12)
+  * fix(deps): update module go.yaml.in/yaml/v3 to v3.0.6 (#13)
+  * chore: bump minimum supported Go version to v1.26.0
+
 # 2.6.2 / 2026-05-06
 
   * chore: update linter config; modernize code; drop Go 1.24 support
